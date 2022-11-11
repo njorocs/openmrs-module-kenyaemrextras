@@ -98,6 +98,7 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		DataSetDefinition pedsMissedRecentAppointmentDSD = pedsMissedRecentAppointmentDatasetDefinition("S_02_19");
 		DataSetDefinition txCurrKPsWithClinicalVisitLast12MonthsDSD = txCurrKPsWithClinicalVisitLast12MonthsDatasetDefinition("S_03_02");
 		DataSetDefinition txCurrKPsWithClinicalVisitLast3MonthsDSD = txCurrKPsWithClinicalVisitLast3MonthsDatasetDefinition("S_03_05");
+		DataSetDefinition txNewKPsRetestDSD = txNewKPsHIVRetestDatasetDefinition("S_03_08");
 		
 		return Arrays.asList(ReportUtils.map(newlyInitiatedOnArtPatientsDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(missedAppointmentsDSD, "startDate=${startDate},endDate=${endDate}"),
@@ -114,7 +115,8 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		    ReportUtils.map(pedsNewlyInitiatedOnArtdDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(cervicalCancerScreeningDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(txCurrKPsWithClinicalVisitLast12MonthsDSD, "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(txCurrKPsWithClinicalVisitLast3MonthsDSD, "startDate=${startDate},endDate=${endDate}")
+		    ReportUtils.map(txCurrKPsWithClinicalVisitLast3MonthsDSD, "startDate=${startDate},endDate=${endDate}"),
+		    ReportUtils.map(txNewKPsRetestDSD, "startDate=${startDate},endDate=${endDate}")
 		
 		);
 		
@@ -809,6 +811,46 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
 		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
 		dsd.addColumn("KP Typology documented", kpTypologyDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0205CohortDefinition();
+		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		dsd.addRowFilter(cd, indParams);
+		return dsd;
+	}
+	
+	/**
+	 * TX_NEW KPs aged 15+ retest documentation
+	 * 
+	 * @param datasetName
+	 * @return
+	 */
+	protected PatientDataSetDefinition txNewKPsHIVRetestDatasetDefinition(String datasetName) {
+		
+		PatientDataSetDefinition dsd = new PatientDataSetDefinition(datasetName);
+		String indParams = "startDate=${startDate},endDate=${endDate}";
+		
+		dsd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		dsd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		PatientIdentifierType upn = MetadataUtils.existing(PatientIdentifierType.class,
+		    HivMetadata._PatientIdentifierType.UNIQUE_PATIENT_NUMBER);
+		DataConverter identifierFormatter = new ObjectFormatter("{identifier}");
+		DataDefinition identifierDef = new ConvertedPatientDataDefinition("identifier", new PatientIdentifierDataDefinition(
+		        upn.getName(), upn), identifierFormatter);
+		
+		DataConverter nameFormatter = new ObjectFormatter("{familyName}, {givenName}");
+		DataDefinition nameDef = new ConvertedPersonDataDefinition("name", new PreferredNameDataDefinition(), nameFormatter);
+		
+		SimsTxNewKPRetestDocumentationStatusDataDefinition txNewKPRetestDocumentationStatusDataDefinition = new SimsTxNewKPRetestDocumentationStatusDataDefinition();
+		txNewKPRetestDocumentationStatusDataDefinition.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		txNewKPRetestDocumentationStatusDataDefinition.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		dsd.addColumn("id", new PersonIdDataDefinition(), "");
+		dsd.addColumn("Name", nameDef, "");
+		dsd.addColumn("CCC No", identifierDef, "");
+		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
+		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
+		dsd.addColumn("TX_New Retest documented", txNewKPRetestDocumentationStatusDataDefinition, indParams, null);
 		CohortDefinition cd = new S0205CohortDefinition();
 		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
 		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
