@@ -3,14 +3,14 @@
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
  * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
- *
+ * <p>
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.sims;
 
 import org.openmrs.annotation.Handler;
-import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsTBResultDoumentedDataDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsTxCurrKPsSTIScreeningDocumentationStatusDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.data.person.evaluator.PersonDataEvaluator;
@@ -24,10 +24,11 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Evaluates whether TB screening results documented at the last clinical assessment
+ * Evaluates whether Tx_Curr KPS who visited the facility within the last 12 months had STI
+ * screening documented in their last encounter
  */
-@Handler(supports = SimsTBResultDoumentedDataDefinition.class, order = 50)
-public class SimsTBSResultDocumentedDataEvaluator implements PersonDataEvaluator {
+@Handler(supports = SimsTxCurrKPsSTIScreeningDocumentationStatusDataDefinition.class, order = 50)
+public class SimsTxCurrKpsSTIScreeningDocumentationStatusDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
 	private EvaluationService evaluationService;
@@ -36,11 +37,10 @@ public class SimsTBSResultDocumentedDataEvaluator implements PersonDataEvaluator
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select v.patient_id, if(lastTBStatus is not null,'Y','N') from (\n"
-		        + "select f.patient_id as patient_id,\n"
-		        + "mid(max(concat(f.visit_date, f.tb_status)), 11) AS lastTBStatus,\n" + "f.visit_date as visitDate\n"
-		        + " FROM kenyaemr_etl.etl_patient_hiv_followup f\n" + " GROUP BY f.patient_id ) v\n"
-		        + "where visitDate <= date(:endDate)";
+		String qry = "select v.client_id, if(mid(max(concat(date(v.visit_date), v.sti_screened)), 11) = 'Y', 'Y', 'N') as sti_screened\n"
+		        + "from kenyaemr_etl.etl_clinical_visit v\n"
+		        + "where date(v.visit_date) between date_sub(date_add(date(:endDate), INTERVAL 1 DAY), INTERVAL 12 MONTH)\n"
+		        + "          and date(:endDate) group by v.client_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		Date startDate = (Date) context.getParameterValue("startDate");

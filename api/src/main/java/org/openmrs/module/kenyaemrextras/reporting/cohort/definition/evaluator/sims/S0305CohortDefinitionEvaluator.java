@@ -16,10 +16,7 @@ import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.kenyaemr.api.KenyaEmrService;
 import org.openmrs.module.kenyaemrextras.metadata.ExtrasMetadata;
-import org.openmrs.module.kenyaemrextras.reporting.DQAQueries;
-import org.openmrs.module.kenyaemrextras.reporting.PersistedCohort;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.evaluator.DQAActiveCohortDefinitionEvaluator;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0302CohortDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0305CohortDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.library.sims.SimsReportQueries;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
@@ -33,10 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 
 /**
- * Evaluator for S0302CohortDefinition
+ * Evaluator for S0305CohortDefinition
  */
-@Handler(supports = { S0302CohortDefinition.class })
-public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator {
+@Handler(supports = { S0305CohortDefinition.class })
+public class S0305CohortDefinitionEvaluator implements CohortDefinitionEvaluator {
 	
 	private final Log log = LogFactory.getLog(this.getClass());
 	
@@ -46,14 +43,14 @@ public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator
 	@Override
 	public EvaluatedCohort evaluate(CohortDefinition cohortDefinition, EvaluationContext context) throws EvaluationException {
 		
-		S0302CohortDefinition definition = (S0302CohortDefinition) cohortDefinition;
+		S0305CohortDefinition definition = (S0305CohortDefinition) cohortDefinition;
 		
 		if (definition == null)
 			return null;
 		
 		Cohort newCohort = new Cohort();
 		
-		String qry = SimsReportQueries.txCurrKPsWithVisitsLast12Months();
+		String qry = SimsReportQueries.txCurrKPsWithVisitsLast3Months();
 		
 		SqlQueryBuilder builder = new SqlQueryBuilder();
 		builder.append(qry);

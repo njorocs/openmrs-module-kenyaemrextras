@@ -10,7 +10,7 @@
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.sims;
 
 import org.openmrs.annotation.Handler;
-import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsTxCurrKPsTypologyDocumentationStatusDataDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsTxNewKPRetestDocumentationStatusDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.data.person.evaluator.PersonDataEvaluator;
@@ -24,11 +24,10 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Evaluates whether Tx_Curr KPS who visited the facility within the last 3 months have their KP
- * typology documented
+ * Evaluates whether TX_New KPs had a retest when or before starting treatment
  */
-@Handler(supports = SimsTxCurrKPsTypologyDocumentationStatusDataDefinition.class, order = 50)
-public class SimsTxCurrKpsTypologyDocumentationStatusDataEvaluator implements PersonDataEvaluator {
+@Handler(supports = SimsTxNewKPRetestDocumentationStatusDataDefinition.class, order = 50)
+public class SimsTxNewKPRetestDocumentationStatusDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
 	private EvaluationService evaluationService;
@@ -37,13 +36,15 @@ public class SimsTxCurrKpsTypologyDocumentationStatusDataEvaluator implements Pe
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select d.patient_id,if(c.client_id is null,'NA',c.kp_typology_documented) from kenyaemr_etl.etl_patient_demographics d\n"
-		        + "left join (select c.client_id,\n"
-		        + "       if(mid(max(concat(date(c.visit_date), c.key_population_type)), 11) in\n"
-		        + "          ('People in prison and other closed settings','Transgender','PWID','PWUD','MSW','MSM','FSW'), 'Y', 'N') as kp_typology_documented\n"
-		        + "from kenyaemr_etl.etl_contact c\n"
-		        + "where date(c.visit_date) <= date(:endDate)\n"
-		        + "group by c.client_id)c on d.patient_id = c.client_id;";
+		String qry = "select d.patient_id,if(de.date_started is not null,if(date(rt.retest_date) <= date(de.date_started), 'Y', 'N'),'NA')\n"
+		        + "from kenyaemr_etl.etl_patient_demographics d\n"
+		        + "         left join (select de.patient_id, min(date(de.date_started)) as date_started\n"
+		        + "                    from kenyaemr_etl.etl_drug_event de\n"
+		        + "         where de.program = 'HIV' and date(de.date_started) <= date(:endDate)\n"
+		        + "                    group by de.patient_id) de\n"
+		        + "                   on d.patient_id = de.patient_id\n"
+		        + "left join (select rt.patient_id,rt.visit_date as retest_date from kenyaemr_etl.etl_hts_test rt where rt.test_type = 2 and rt.final_test_result = 'Positive'\n"
+		        + "    and date(rt.visit_date) <= date(:endDate)) rt\n" + "on d.patient_id = rt.patient_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		Date startDate = (Date) context.getParameterValue("startDate");

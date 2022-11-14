@@ -15,25 +15,24 @@ import org.openmrs.module.reporting.definition.configuration.ConfigurationProper
 import org.openmrs.module.reporting.evaluation.caching.Caching;
 
 /**
- * Evaluates whether Tx_Curr KPS who visited the facility within the last 12 months have their
- * typology documented
+ * Evaluates whether TX_New KPs had a retest when or before starting treatment
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
-public class SimsTxCurrKPsTypologyDocumentationStatusDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
+public class SimsTxNewKPRetestDocumentationStatusDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
 	
 	public static final long serialVersionUID = 1L;
 	
 	/**
 	 * Default Constructor
 	 */
-	public SimsTxCurrKPsTypologyDocumentationStatusDataDefinition() {
+	public SimsTxNewKPRetestDocumentationStatusDataDefinition() {
 		super();
 	}
 	
 	/**
 	 * Constructor to populate name only
 	 */
-	public SimsTxCurrKPsTypologyDocumentationStatusDataDefinition(String name) {
+	public SimsTxNewKPRetestDocumentationStatusDataDefinition(String name) {
 		super(name);
 	}
 	

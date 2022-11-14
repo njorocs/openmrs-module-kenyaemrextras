@@ -3,7 +3,7 @@
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
  * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
- *
+ * <p>
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
@@ -16,8 +16,7 @@ import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.kenyaemr.api.KenyaEmrService;
 import org.openmrs.module.kenyaemrextras.metadata.ExtrasMetadata;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.S0302CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0305CohortDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0309CohortDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.library.sims.SimsReportQueries;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
@@ -31,10 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 
 /**
- * Evaluator for S0302CohortDefinition
+ * Evaluator for S0308CohortDefinition
  */
-@Handler(supports = { S0302CohortDefinition.class })
-public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator {
+@Handler(supports = { S0309CohortDefinition.class })
+public class S0309CohortDefinitionEvaluator implements CohortDefinitionEvaluator {
 	
 	private final Log log = LogFactory.getLog(this.getClass());
 	
@@ -44,17 +43,14 @@ public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator
 	@Override
 	public EvaluatedCohort evaluate(CohortDefinition cohortDefinition, EvaluationContext context) throws EvaluationException {
 		
-		S0302CohortDefinition definition = (S0302CohortDefinition) cohortDefinition;
+		S0309CohortDefinition definition = (S0309CohortDefinition) cohortDefinition;
 		
 		if (definition == null)
 			return null;
 		
 		Cohort newCohort = new Cohort();
 		
-		// ----------------------------
-		//Cohort newCohort = new Cohort();
-		
-		String qry = SimsReportQueries.txCurrKPsWithVisitsLast12Months();
+		String qry = SimsReportQueries.missedAppKPs();
 		
 		SqlQueryBuilder builder = new SqlQueryBuilder();
 		builder.append(qry);
@@ -67,69 +63,31 @@ public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator
 		newCohort.setMemberIds(new HashSet<Integer>(ptIds));
 		return new EvaluatedCohort(newCohort, definition, context);
 		
-		// ----------------------------
-		
 		/*Map<String, Object> m = new HashMap<String, Object>();
 		
 		Date startDate = (Date) context.getParameterValue("startDate");
 		Date endDate = (Date) context.getParameterValue("endDate");
 		
-		m.put("endDate", endDate);
-		TreeMap<Double, Integer> pedsMap = (TreeMap<Double, Integer>) makePatientDataMapFromSQL(
-		    DQAQueries.getChildrenBelow15Query(), m);
-		TreeMap<Double, Integer> generalPopMap = (TreeMap<Double, Integer>) makePatientDataMapFromSQL(
-		    DQAQueries.getAdultAbove15Query(), m);
-		TreeMap<Double, Integer> totalTXCURRPopMap = (TreeMap<Double, Integer>) makePatientDataMapFromSQL(
-		    DQAQueries.getTXCURRQuery(), m);
-		
 		m.put("startDate", startDate);
-		TreeMap<Double, Integer> pmtctMap = (TreeMap<Double, Integer>) makePatientDataMapFromSQL(DQAQueries.getPMTCTQuery(),
-		    m);
+		m.put("endDate", endDate);
+		TreeMap<Double, Integer> txcurrKPsWithVisits = (TreeMap<Double, Integer>) makePatientDataMapFromSQL(
+		    SimsReportQueries.txCurrKPsWithVisitsLast12Months(), m);
+		
 		int sampleSize = 0;
 		
-		if (totalTXCURRPopMap != null) {
-			Integer allPatients = totalTXCURRPopMap.size();
-			DQASampleSizeConfiguration conf = getSampleConfiguration();
+		if (txcurrKPsWithVisits != null) {
+			Integer allPatients = txcurrKPsWithVisits.size();
+			S0302CohortDefinitionEvaluator.DQASampleSizeConfiguration conf = getSampleConfiguration();
 			sampleSize = getSampleSize(allPatients, conf);
 		}
-		// define limits for the different categories. This is currently set to the same value
-		int childrenBelow15 = sampleSize;
-		int adultAbove15 = sampleSize;
-		int pmtct = sampleSize;
-		
+		int kps = sampleSize;
 		Map<Integer, String> buildingCohort = new HashMap<Integer, String>();
-		if (pedsMap != null) {
+		if (txcurrKPsWithVisits != null) {
 			int i = 0;
-			for (Double rand : pedsMap.keySet()) {
-				if (i < childrenBelow15) {
-					newCohort.addMember(pedsMap.get(rand));
-					buildingCohort.put(pedsMap.get(rand), "Child < 15");
-					i++;
-				} else {
-					break;
-				}
-			}
-		}
-		
-		if (pmtctMap != null) {
-			int i = 0;
-			for (Double rand : pmtctMap.keySet()) {
-				if (i < pmtct) {
-					newCohort.addMember(pmtctMap.get(rand));
-					buildingCohort.put(pmtctMap.get(rand), "PMTCT");
-					i++;
-				} else {
-					break;
-				}
-			}
-		}
-		
-		if (generalPopMap != null) {
-			int i = 0;
-			for (Double rand : generalPopMap.keySet()) {
-				if (i < adultAbove15 && !buildingCohort.containsKey(generalPopMap.get(rand))) {
-					newCohort.addMember(generalPopMap.get(rand));
-					buildingCohort.put(generalPopMap.get(rand), "Adult 15+");
+			for (Double rand : txcurrKPsWithVisits.keySet()) {
+				if (i < kps) {
+					newCohort.addMember(txcurrKPsWithVisits.get(rand));
+					buildingCohort.put(txcurrKPsWithVisits.get(rand), "TX_CURR KPs");
 					i++;
 				} else {
 					break;
@@ -139,6 +97,7 @@ public class S0302CohortDefinitionEvaluator implements CohortDefinitionEvaluator
 		
 		PersistedCohort.evaluatedCohort = buildingCohort;
 		return new EvaluatedCohort(newCohort, definition, context);*/
+		
 	}
 	
 	/**

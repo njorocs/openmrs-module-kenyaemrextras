@@ -15,10 +15,10 @@ import org.openmrs.module.reporting.definition.configuration.ConfigurationProper
 import org.openmrs.module.reporting.evaluation.caching.Caching;
 
 /**
- * Tx Curr Monthly Surge cohort definition
+ * S0302 definition
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
-@Localized("reporting.MonthlySurgeTxCurrCohortDefinition")
-public class MonthlySurgeTxCurrCohortDefinition extends BaseCohortDefinition {
+@Localized("reporting.S0302CohortDefinition")
+public class S0302CohortDefinition extends BaseCohortDefinition {
 	
 }

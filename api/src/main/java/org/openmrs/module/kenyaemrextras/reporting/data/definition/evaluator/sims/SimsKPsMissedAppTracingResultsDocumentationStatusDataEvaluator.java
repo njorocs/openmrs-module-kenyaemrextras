@@ -10,7 +10,8 @@
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.sims;
 
 import org.openmrs.annotation.Handler;
-import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsTxCurrKPsTypologyDocumentationStatusDataDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.SimsKPsMissedAppTrackingDocumentationStatusDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.data.person.evaluator.PersonDataEvaluator;
@@ -24,11 +25,10 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Evaluates whether Tx_Curr KPS who visited the facility within the last 3 months have their KP
- * typology documented
+ * Evaluates whether missed appointment KPS had tracing results documented
  */
-@Handler(supports = SimsTxCurrKPsTypologyDocumentationStatusDataDefinition.class, order = 50)
-public class SimsTxCurrKpsTypologyDocumentationStatusDataEvaluator implements PersonDataEvaluator {
+@Handler(supports = SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition.class, order = 50)
+public class SimsKPsMissedAppTracingResultsDocumentationStatusDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
 	private EvaluationService evaluationService;
@@ -37,13 +37,17 @@ public class SimsTxCurrKpsTypologyDocumentationStatusDataEvaluator implements Pe
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select d.patient_id,if(c.client_id is null,'NA',c.kp_typology_documented) from kenyaemr_etl.etl_patient_demographics d\n"
-		        + "left join (select c.client_id,\n"
-		        + "       if(mid(max(concat(date(c.visit_date), c.key_population_type)), 11) in\n"
-		        + "          ('People in prison and other closed settings','Transgender','PWID','PWUD','MSW','MSM','FSW'), 'Y', 'N') as kp_typology_documented\n"
-		        + "from kenyaemr_etl.etl_contact c\n"
-		        + "where date(c.visit_date) <= date(:endDate)\n"
-		        + "group by c.client_id)c on d.patient_id = c.client_id;";
+		String qry = "select a.patient_id, if(a.tracing_outcome <> '', 'Y', 'N')\n"
+		        + "from (select f.patient_id,\n"
+		        + "             max(date(f.visit_date))                                     as latest_fup_visit,\n"
+		        + "             mid(max(concat(f.visit_date, f.next_appointment_date)), 11) as latest_app_date,\n"
+		        + "             t.tracking_date,\n"
+		        + "             t.tracing_outcome\n"
+		        + "      from kenyaemr_etl.etl_patient_hiv_followup f\n"
+		        + "               left join (select t.client_id, max(t.visit_date) as tracking_date,mid(max(concat(t.visit_date,t.tracing_outcome)),11) as tracing_outcome\n"
+		        + "                          from kenyaemr_etl.etl_peer_tracking t\n"
+		        + "                          where t.visit_date <= date(:endDate) group by t.client_id) t on f.patient_id = t.client_id\n"
+		        + "      where f.visit_date <= date(:endDate)\n" + "      group by f.patient_id) a;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		Date startDate = (Date) context.getParameterValue("startDate");

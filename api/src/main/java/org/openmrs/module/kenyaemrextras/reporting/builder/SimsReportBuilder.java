@@ -16,16 +16,8 @@ import org.openmrs.module.kenyacore.report.ReportUtils;
 import org.openmrs.module.kenyacore.report.builder.AbstractHybridReportBuilder;
 import org.openmrs.module.kenyacore.report.builder.Builds;
 import org.openmrs.module.kenyaemr.metadata.HivMetadata;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S02012CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0201CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0202CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0203CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0205CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0207CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0217CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0218CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0219CohortDefinition;
-import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.S0226To28CohortDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.S0302CohortDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.sims.*;
 import org.openmrs.module.kenyaemrextras.reporting.data.definition.EverOnIPTDataDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.data.definition.converter.SimsDataConverter;
 import org.openmrs.module.kenyaemrextras.reporting.data.definition.sims.*;
@@ -99,6 +91,7 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		DataSetDefinition txCurrKPsWithClinicalVisitLast12MonthsDSD = txCurrKPsWithClinicalVisitLast12MonthsDatasetDefinition("S_03_02");
 		DataSetDefinition txCurrKPsWithClinicalVisitLast3MonthsDSD = txCurrKPsWithClinicalVisitLast3MonthsDatasetDefinition("S_03_05");
 		DataSetDefinition txNewKPsRetestDSD = txNewKPsHIVRetestDatasetDefinition("S_03_08");
+		DataSetDefinition missedAppKPsTracedDSD = missedAppKPsTracedDatasetDefinition("S_03_09");
 		
 		return Arrays.asList(ReportUtils.map(newlyInitiatedOnArtPatientsDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(missedAppointmentsDSD, "startDate=${startDate},endDate=${endDate}"),
@@ -116,7 +109,8 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		    ReportUtils.map(cervicalCancerScreeningDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(txCurrKPsWithClinicalVisitLast12MonthsDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(txCurrKPsWithClinicalVisitLast3MonthsDSD, "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(txNewKPsRetestDSD, "startDate=${startDate},endDate=${endDate}")
+		    ReportUtils.map(txNewKPsRetestDSD, "startDate=${startDate},endDate=${endDate}"),
+		    ReportUtils.map(missedAppKPsTracedDSD, "startDate=${startDate},endDate=${endDate}")
 		
 		);
 		
@@ -768,11 +762,10 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		dsd.addColumn("CCC No", identifierDef, "");
 		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
 		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
-		dsd.addColumn("STI documentation", stiScreeningDocumentationStatusDataDefinition, indParams, null);
-		CohortDefinition cd = new S0203CohortDefinition();
+		dsd.addColumn("S_03_02 Q4", stiScreeningDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0302CohortDefinition();
 		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
 		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
-		// cd.setName("STI screening documentation past 12 months for tx_curr kps");
 		dsd.addRowFilter(cd, indParams);
 		return dsd;
 	}
@@ -810,8 +803,8 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		dsd.addColumn("CCC No", identifierDef, "");
 		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
 		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
-		dsd.addColumn("KP Typology documented", kpTypologyDocumentationStatusDataDefinition, indParams, null);
-		CohortDefinition cd = new S0205CohortDefinition();
+		dsd.addColumn("S_03_05 Q4", kpTypologyDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0305CohortDefinition();
 		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
 		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
 		dsd.addRowFilter(cd, indParams);
@@ -850,8 +843,56 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		dsd.addColumn("CCC No", identifierDef, "");
 		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
 		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
-		dsd.addColumn("TX_New Retest documented", txNewKPRetestDocumentationStatusDataDefinition, indParams, null);
-		CohortDefinition cd = new S0205CohortDefinition();
+		dsd.addColumn("S_03_08 Q3", txNewKPRetestDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0308CohortDefinition();
+		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		dsd.addRowFilter(cd, indParams);
+		return dsd;
+	}
+	
+	/**
+	 * Dataset definition for ART KPs who missed appointment and their tracing status
+	 * 
+	 * @param datasetName
+	 * @return
+	 */
+	protected PatientDataSetDefinition missedAppKPsTracedDatasetDefinition(String datasetName) {
+		
+		PatientDataSetDefinition dsd = new PatientDataSetDefinition(datasetName);
+		String indParams = "startDate=${startDate},endDate=${endDate}";
+		
+		dsd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		dsd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		PatientIdentifierType upn = MetadataUtils.existing(PatientIdentifierType.class,
+		    HivMetadata._PatientIdentifierType.UNIQUE_PATIENT_NUMBER);
+		DataConverter identifierFormatter = new ObjectFormatter("{identifier}");
+		DataDefinition identifierDef = new ConvertedPatientDataDefinition("identifier", new PatientIdentifierDataDefinition(
+		        upn.getName(), upn), identifierFormatter);
+		
+		DataConverter nameFormatter = new ObjectFormatter("{familyName}, {givenName}");
+		DataDefinition nameDef = new ConvertedPersonDataDefinition("name", new PreferredNameDataDefinition(), nameFormatter);
+		
+		SimsKPsMissedAppTrackingDocumentationStatusDataDefinition missedAppKPsTracingDocumentationStatusDataDefinition = new SimsKPsMissedAppTrackingDocumentationStatusDataDefinition();
+		missedAppKPsTracingDocumentationStatusDataDefinition.addParameter(new Parameter("startDate", "Start Date",
+		        Date.class));
+		missedAppKPsTracingDocumentationStatusDataDefinition.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition simsKPsMissedAppTracingResultsDocumentationStatusDataDefinition = new SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition();
+		simsKPsMissedAppTracingResultsDocumentationStatusDataDefinition.addParameter(new Parameter("startDate",
+		        "Start Date", Date.class));
+		simsKPsMissedAppTracingResultsDocumentationStatusDataDefinition.addParameter(new Parameter("endDate", "End Date",
+		        Date.class));
+		
+		dsd.addColumn("id", new PersonIdDataDefinition(), "");
+		dsd.addColumn("Name", nameDef, "");
+		dsd.addColumn("CCC No", identifierDef, "");
+		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
+		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
+		dsd.addColumn("S_03_09 Q2", missedAppKPsTracingDocumentationStatusDataDefinition, indParams, null);
+		dsd.addColumn("S_03_09 Q3", simsKPsMissedAppTracingResultsDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0309CohortDefinition();
 		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
 		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
 		dsd.addRowFilter(cd, indParams);
