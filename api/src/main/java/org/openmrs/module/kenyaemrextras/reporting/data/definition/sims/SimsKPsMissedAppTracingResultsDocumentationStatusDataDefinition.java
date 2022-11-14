@@ -15,24 +15,24 @@ import org.openmrs.module.reporting.definition.configuration.ConfigurationProper
 import org.openmrs.module.reporting.evaluation.caching.Caching;
 
 /**
- * Evaluates whether Missed appointment KPS had tracking attempt done
+ * Evaluates Missed appointment KPS tracing outcome documentation
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
-public class SimsKPsMissedAppTrackingDocumentationStatusDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
+public class SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
 	
 	public static final long serialVersionUID = 1L;
 	
 	/**
 	 * Default Constructor
 	 */
-	public SimsKPsMissedAppTrackingDocumentationStatusDataDefinition() {
+	public SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition() {
 		super();
 	}
 	
 	/**
 	 * Constructor to populate name only
 	 */
-	public SimsKPsMissedAppTrackingDocumentationStatusDataDefinition(String name) {
+	public SimsKPsMissedAppTracingResultsDocumentationStatusDataDefinition(String name) {
 		super(name);
 	}
 	
