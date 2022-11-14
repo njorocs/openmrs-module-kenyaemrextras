@@ -97,6 +97,7 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		DataSetDefinition pedsOnArtScreenedNegTBAndEverOnTPTDSD = pedsOnArtScreenedNegTBAndEverOnTPTDatasetDefinition("S_02_27");
 		DataSetDefinition pedsMissedRecentAppointmentDSD = pedsMissedRecentAppointmentDatasetDefinition("S_02_19");
 		DataSetDefinition txCurrKPsWithClinicalVisitLast12MonthsDSD = txCurrKPsWithClinicalVisitLast12MonthsDatasetDefinition("S_03_02");
+		DataSetDefinition txCurrKPsWithClinicalVisitLast3MonthsDSD = txCurrKPsWithClinicalVisitLast3MonthsDatasetDefinition("S_03_05");
 		
 		return Arrays.asList(ReportUtils.map(newlyInitiatedOnArtPatientsDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(missedAppointmentsDSD, "startDate=${startDate},endDate=${endDate}"),
@@ -112,7 +113,8 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		    ReportUtils.map(pedsMissedRecentAppointmentDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(pedsNewlyInitiatedOnArtdDSD, "startDate=${startDate},endDate=${endDate}"),
 		    ReportUtils.map(cervicalCancerScreeningDSD, "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(txCurrKPsWithClinicalVisitLast12MonthsDSD, "startDate=${startDate},endDate=${endDate}")
+		    ReportUtils.map(txCurrKPsWithClinicalVisitLast12MonthsDSD, "startDate=${startDate},endDate=${endDate}"),
+		    ReportUtils.map(txCurrKPsWithClinicalVisitLast3MonthsDSD, "startDate=${startDate},endDate=${endDate}")
 		
 		);
 		
@@ -773,4 +775,44 @@ public class SimsReportBuilder extends AbstractHybridReportBuilder {
 		return dsd;
 	}
 	
+	/**
+	 * Tx_Curr KPs with clinical visits within the last 3 months and their KP typology documentation
+	 * status
+	 * 
+	 * @param datasetName
+	 * @return
+	 */
+	protected PatientDataSetDefinition txCurrKPsWithClinicalVisitLast3MonthsDatasetDefinition(String datasetName) {
+		
+		PatientDataSetDefinition dsd = new PatientDataSetDefinition(datasetName);
+		String indParams = "startDate=${startDate},endDate=${endDate}";
+		
+		dsd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		dsd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		PatientIdentifierType upn = MetadataUtils.existing(PatientIdentifierType.class,
+		    HivMetadata._PatientIdentifierType.UNIQUE_PATIENT_NUMBER);
+		DataConverter identifierFormatter = new ObjectFormatter("{identifier}");
+		DataDefinition identifierDef = new ConvertedPatientDataDefinition("identifier", new PatientIdentifierDataDefinition(
+		        upn.getName(), upn), identifierFormatter);
+		
+		DataConverter nameFormatter = new ObjectFormatter("{familyName}, {givenName}");
+		DataDefinition nameDef = new ConvertedPersonDataDefinition("name", new PreferredNameDataDefinition(), nameFormatter);
+		
+		SimsTxCurrKPsTypologyDocumentationStatusDataDefinition kpTypologyDocumentationStatusDataDefinition = new SimsTxCurrKPsTypologyDocumentationStatusDataDefinition();
+		kpTypologyDocumentationStatusDataDefinition.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		kpTypologyDocumentationStatusDataDefinition.addParameter(new Parameter("endDate", "End Date", Date.class));
+		
+		dsd.addColumn("id", new PersonIdDataDefinition(), "");
+		dsd.addColumn("Name", nameDef, "");
+		dsd.addColumn("CCC No", identifierDef, "");
+		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
+		dsd.addColumn("Date of Birth", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
+		dsd.addColumn("KP Typology documented", kpTypologyDocumentationStatusDataDefinition, indParams, null);
+		CohortDefinition cd = new S0205CohortDefinition();
+		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
+		cd.addParameter(new Parameter("endDate", "End Date", Date.class));
+		dsd.addRowFilter(cd, indParams);
+		return dsd;
+	}
 }
