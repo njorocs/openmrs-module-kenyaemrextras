@@ -9,14 +9,39 @@
  */
 package org.openmrs.module.kenyaemrextras.reporting.builder;
 
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.module.kenyacore.report.ReportDescriptor;
 import org.openmrs.module.kenyacore.report.ReportUtils;
 import org.openmrs.module.kenyacore.report.builder.AbstractReportBuilder;
 import org.openmrs.module.kenyacore.report.builder.Builds;
+import org.openmrs.module.kenyacore.report.data.patient.definition.CalculationDataDefinition;
+import org.openmrs.module.kenyaemr.Dictionary;
+import org.openmrs.module.kenyaemr.calculation.library.hiv.art.DateOfEnrollmentArtCalculation;
+import org.openmrs.module.kenyaemr.calculation.library.rdqa.DateOfDeathCalculation;
+import org.openmrs.module.kenyaemr.metadata.CommonMetadata;
+import org.openmrs.module.kenyaemr.metadata.HivMetadata;
+import org.openmrs.module.kenyaemr.reporting.calculation.converter.DateArtStartDateConverter;
+import org.openmrs.module.kenyaemr.reporting.data.converter.CalculationResultConverter;
+import org.openmrs.module.kenyaemr.reporting.data.converter.definition.KenyaEMRMaritalStatusDataDefinition;
+import org.openmrs.module.kenyaemr.reporting.data.converter.definition.art.ETLArtStartDateDataDefinition;
+import org.openmrs.module.kenyaemr.reporting.data.converter.definition.art.ETLCurrentRegimenDataDefinition;
+import org.openmrs.module.kenyaemr.reporting.data.converter.definition.art.ETLFirstRegimenDataDefinition;
+import org.openmrs.module.kenyaemr.reporting.data.converter.definition.art.WHOStageArtDataDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.DeceasedHEICohortDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.DeceasedHivAndTBPatientCohortDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.DeceasedHivPatientCohortDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.cohort.definition.DeceasedTBPatientCohortDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.mortalityAuditTool.ThirdARTRegimenSwitchDateDataEvaluator;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.mortalityAuditTool.ThirdRegimenChangeReasonDataEvaluator;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.*;
+import org.openmrs.module.metadatadeploy.MetadataUtils;
+import org.openmrs.module.reporting.common.TimeQualifier;
+import org.openmrs.module.reporting.data.DataDefinition;
+import org.openmrs.module.reporting.data.converter.*;
+import org.openmrs.module.reporting.data.patient.definition.ConvertedPatientDataDefinition;
+import org.openmrs.module.reporting.data.patient.definition.PatientIdentifierDataDefinition;
+import org.openmrs.module.reporting.data.person.definition.*;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.PatientDataSetDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
@@ -46,10 +71,11 @@ public class MortalityAuditToolReportBuilder extends AbstractReportBuilder {
 	
 	@Override
 	protected List<Mapped<DataSetDefinition>> buildDataSets(ReportDescriptor descriptor, ReportDefinition report) {
-		return Arrays.asList(ReportUtils.map(hivDataSetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(hivAndTBDataSetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(tbDatasetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"),
-		    ReportUtils.map(heiDatasetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"));
+		return Arrays
+		        .asList(ReportUtils.map(hivDataSetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}")/*,
+		                                                                                                           ReportUtils.map(hivAndTBDataSetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"),
+		                                                                                                           ReportUtils.map(tbDatasetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}"),
+		                                                                                                           ReportUtils.map(heiDatasetDefinitionColumns(), "startDate=${startDate},endDate=${endDate}")*/);
 	}
 	
 	protected DataSetDefinition hivDataSetDefinitionColumns() {
@@ -60,7 +86,78 @@ public class MortalityAuditToolReportBuilder extends AbstractReportBuilder {
 		dsd.addParameter(new Parameter("endDate", "End Date", Date.class));
 		String paramMapping = "startDate=${startDate},endDate=${endDate}";
 		
-		//Add columns here
+		PatientIdentifierType upn = MetadataUtils.existing(PatientIdentifierType.class,
+		    HivMetadata._PatientIdentifierType.UNIQUE_PATIENT_NUMBER);
+		PatientIdentifierType nupi = MetadataUtils.existing(PatientIdentifierType.class,
+		    CommonMetadata._PatientIdentifierType.NATIONAL_UNIQUE_PATIENT_IDENTIFIER);
+		DataConverter identifierFormatter = new ObjectFormatter("{identifier}");
+		DataDefinition identifierDef = new ConvertedPatientDataDefinition("identifier", new PatientIdentifierDataDefinition(
+		        upn.getName(), upn), identifierFormatter);
+		DataDefinition nupiDef = new ConvertedPatientDataDefinition("identifier", new PatientIdentifierDataDefinition(
+		        nupi.getName(), nupi), identifierFormatter);
+		PersonAttributeType phoneNumber = MetadataUtils.existing(PersonAttributeType.class,
+		    CommonMetadata._PersonAttributeType.TELEPHONE_CONTACT);
+		
+		//DataConverter formatter = new ObjectFormatter("{familyName}, {givenName}");
+		//DataDefinition nameDef = new ConvertedPersonDataDefinition("name", new PreferredNameDataDefinition(), formatter);
+		dsd.addColumn("id", new PersonIdDataDefinition(), "");
+		dsd.addColumn("NUPI", nupiDef, "");
+		dsd.addColumn("CCC No", identifierDef, "");
+		dsd.addColumn("DOB", new BirthdateDataDefinition(), "", new BirthdateConverter(DATE_FORMAT));
+		dsd.addColumn("Death date", new CalculationDataDefinition("Death date", new DateOfDeathCalculation()), "",
+		    new CalculationResultConverter());
+		dsd.addColumn("Age at Death", new AgeAtDeathDataDefinition(), "", null);
+		dsd.addColumn("Sex", new GenderDataDefinition(), "", null);
+		
+		dsd.addColumn("Marital Status", new KenyaEMRMaritalStatusDataDefinition(), "");
+		dsd.addColumn("Pregnant or Breastfeeding", new PregnantOrBreastfeedingDataDefinition(), "");
+		dsd.addColumn("Occupation",
+		    new ObsForPersonDataDefinition("Occupation", TimeQualifier.LAST, Dictionary.getConcept(Dictionary.OCCUPATION),
+		            null, null), "", new ObsValueConverter());
+		//dsd.addColumn("Primary caregiver", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("HIV Status of caregiver", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Caregiver's Education level", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Caregiver's occupation", new KenyaEMRMaritalStatusDataDefinition(), "");
+		dsd.addColumn("Date of HIV diagnosis", new DateOfHIVDiagnosisDataDefinition(), "");
+		dsd.addColumn("Date of enrollment into care)", new CalculationDataDefinition("Enrollment Date",
+		        new DateOfEnrollmentArtCalculation()), "", new DateArtStartDateConverter());
+		dsd.addColumn("WHO clinical stage at enrollment", new BaselineWHOStageDataDefinition(), "");
+		dsd.addColumn("Baseline WHO staging date", new BaselineWHOStageDateDataDefinition(), "");
+		dsd.addColumn("WHO Clinical stage at time of death", new WHOStageArtDataDefinition(), "");
+		dsd.addColumn("Date of ART initiation", new ETLArtStartDateDataDefinition(), "", new DateConverter(DATE_FORMAT));
+		dsd.addColumn("Duration on ART", new DurationOnARTDataDefinition(), "");
+		dsd.addColumn("Initial regimen", new ETLFirstRegimenDataDefinition(), "");
+		dsd.addColumn("Date of start regimen", new DateOfFirstARTRegimenDataDefinition(), "");
+		dsd.addColumn("Reasons for change of first regimen", new FirstRegimenChangeReasonDataDefinition(), "");
+		dsd.addColumn("2nd Regimen", new SecondRegimenDataDefinition(), "");//2,1
+		dsd.addColumn("Date of 2nd regimen switch", new SecondARTRegimenSwitchDateDataDefinition(), "");//2,1
+		dsd.addColumn("Reasons for change of 2nd regimen", new SecondRegimenChangeReasonDataDefinition(), "");//2,1
+		dsd.addColumn("3rd Regimen", new ThirdRegimenDataDefinition(), "");//3,1
+		dsd.addColumn("Date of switch of 3rd Regimen", new ThirdARTRegimenSwitchDateDataEvaluator(), "");//3,1
+		dsd.addColumn("Reasons for change of 3rd Regimen", new ThirdRegimenChangeReasonDataEvaluator(), "");//3,1
+		dsd.addColumn("4th Regimen", new FourthRegimenDataDefinition(), "");//4,1
+		dsd.addColumn("Date of switch of 4th Regimen", new FourthARTRegimenSwitchDateDataDefinition(), "");//4,1
+		dsd.addColumn("Reasons for change of 4th Regimen", new FourthRegimenChangeReasonDataDefinition(), "");//4,1
+		dsd.addColumn("Regimen at the time of death", new ETLCurrentRegimenDataDefinition(), "");
+		//dsd.addColumn("Baseline CD4 count done", new KenyaEMRMaritalStatusDataDefinition(), "");
+		dsd.addColumn("Baseline CD4", new BaselineCD4CountDataDefinition(), "");
+		//dsd.addColumn("Date of Baseline CD4 test", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("CTX/Dapsone given", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("CRAG test done for adolescents and adults with < 200 cd4", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("CRAG test results", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Lumbar puncture done", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Lumbar puncture results", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Lumbar puncture treated", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Antifungal regimen given", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Treatment completed until CD4 recovery", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Pre-emptive treatment with fluconazole given", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("TB LAM done for those with CD4 <200", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("TB diagnosis done", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Type of TB", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("TB Treatment given", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Is there a more recent CD4 count", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Date of most recent CD4 count", new KenyaEMRMaritalStatusDataDefinition(), "");
+		//dsd.addColumn("Patient had a valid VL test result", new KenyaEMRMaritalStatusDataDefinition(), "");
 		
 		DeceasedHivPatientCohortDefinition cd = new DeceasedHivPatientCohortDefinition();
 		cd.addParameter(new Parameter("startDate", "Start Date", Date.class));
