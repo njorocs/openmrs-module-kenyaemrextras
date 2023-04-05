@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Evaluator for DeceasedTBPatientCohortDefinition. Excludes TB co-infected
+ * Evaluator for DeceasedHivPatientCohortDefinition. Excludes TB co-infected
  */
 @Handler(supports = { DeceasedHivPatientCohortDefinition.class })
 public class DeceasedHivPatientCohortDefinitionEvaluator implements CohortDefinitionEvaluator {
