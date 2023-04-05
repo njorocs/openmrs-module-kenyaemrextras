@@ -10,6 +10,7 @@
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.mortalityAuditTool;
 
 import org.openmrs.annotation.Handler;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.ThirdARTRegimenSwitchDateDataDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.ThirdRegimenChangeReasonDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
@@ -26,7 +27,7 @@ import java.util.Map;
 /**
  * Evaluates date of Third ART regimen switch Data Definition
  */
-@Handler(supports = ThirdRegimenChangeReasonDataDefinition.class, order = 50)
+@Handler(supports = ThirdARTRegimenSwitchDateDataDefinition.class, order = 50)
 public class ThirdARTRegimenSwitchDateDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
