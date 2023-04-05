@@ -36,9 +36,9 @@ public class FirstARTRegimenSwitchDateDataEvaluator implements PersonDataEvaluat
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select patient_id,\n" +
-				"mid(min(concat(date(date_started),date_discontinued)), 11) as regimen_switch_date\n" +
-				"from kenyaemr_etl.etl_drug_event where program = 'HIV' GROUP BY patient_id;";
+		String qry = "select patient_id,\n"
+		        + "mid(min(concat(date(date_started),date_discontinued)), 11) as regimen_switch_date\n"
+		        + "from kenyaemr_etl.etl_drug_event where program = 'HIV' GROUP BY patient_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		Date startDate = (Date) context.getParameterValue("startDate");

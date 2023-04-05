@@ -10,7 +10,7 @@
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.mortalityAuditTool;
 
 import org.openmrs.annotation.Handler;
-import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.ThirdRegimenDataDefinition;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.BaselineCD4DateDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.data.person.evaluator.PersonDataEvaluator;
@@ -20,13 +20,14 @@ import org.openmrs.module.reporting.evaluation.querybuilder.SqlQueryBuilder;
 import org.openmrs.module.reporting.evaluation.service.EvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
- * Evaluates ThirdRegimenDataDefinition
+ * Evaluates date of Baseline CD4 Data Definition
  */
-@Handler(supports = ThirdRegimenDataDefinition.class, order = 50)
-public class ThirdRegimenDataEvaluator implements PersonDataEvaluator {
+@Handler(supports = BaselineCD4DateDataDefinition.class, order = 50)
+public class BaselineCD4DateDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
 	private EvaluationService evaluationService;
@@ -35,17 +36,17 @@ public class ThirdRegimenDataEvaluator implements PersonDataEvaluator {
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select f.patient_id,f.regimen from\n"
-		        + "(select n.patient_id, n.date_started,n.regimen,n.date_discontinued,n.reason_discontinued,n.reason_discontinued_other from kenyaemr_etl.etl_drug_event e  join\n"
-		        + "(select t.patient_id,t.date_started,t.regimen,t.date_discontinued,t.reason_discontinued,t.reason_discontinued_other\n"
-		        + "from (select d.*,\n" + "             (@rn := if(@v = patient_id, @rn + 1,\n"
-		        + "                        if(@v := patient_id, 1, 1)\n" + "                 )\n"
-		        + "                 ) as rn\n" + "      from kenyaemr_etl.etl_drug_event d cross join\n"
-		        + "           (select @v := -1, @rn := 0) params\n" + "      where d.program ='HIV'\n"
-		        + "      order by d.patient_id, d.date_started asc\n" + "     ) t\n"
-		        + "where rn=3)n on n.patient_id= e.patient_id group by e.patient_id)f;";
+		String qry = "select patient_id,\n"
+		        + "       left(min(concat(coalesce(date(date_test_requested),date(visit_date)),\n"
+		        + "                       if(lab_test = 5497, test_result, if(lab_test = 167718 and test_result = 1254, '>200', if(lab_test = 167718 and test_result = 167717,'<=200',if(lab_test = 730,concat(test_result,'%'),'')))), '')),\n"
+		        + "            10)  as baseline_cd4_date\n" + "from kenyaemr_etl.etl_laboratory_extract\n"
+		        + "where lab_test in (167718,5497,730)\n" + "GROUP BY patient_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
+		Date startDate = (Date) context.getParameterValue("startDate");
+		Date endDate = (Date) context.getParameterValue("endDate");
+		queryBuilder.addParameter("endDate", endDate);
+		queryBuilder.addParameter("startDate", startDate);
 		queryBuilder.append(qry);
 		Map<Integer, Object> data = evaluationService.evaluateToMap(queryBuilder, Integer.class, Object.class, context);
 		c.setData(data);

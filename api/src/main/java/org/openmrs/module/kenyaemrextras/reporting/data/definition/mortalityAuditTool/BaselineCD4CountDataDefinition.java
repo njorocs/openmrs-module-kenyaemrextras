@@ -19,16 +19,16 @@ import org.openmrs.module.reporting.evaluation.caching.Caching;
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
 public class BaselineCD4CountDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
-
+	
 	public static final long serialVersionUID = 1L;
-
+	
 	/**
 	 * Default Constructor
 	 */
 	public BaselineCD4CountDataDefinition() {
 		super();
 	}
-
+	
 	/**
 	 * Constructor to populate name only
 	 */

@@ -35,12 +35,12 @@ public class FirstRegimenChangeReasonDataEvaluator implements PersonDataEvaluato
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select patient_id,\n" +
-				"        mid(min(concat(date(date_started),coalesce((case reason_discontinued when 102 then \"Drug toxicity\" when 160567 then \"New diagnosis of Tuberculosis\"  when 160569 then \"Virologic failure\"\n" +
-				"                                                                         when 159598 then \"Non-compliance with treatment or therapy\" when 1754 then \"Medications unavailable\"\n" +
-				"                                                                         when 1434 then \"Currently pregnant\"  when 1253 then \"Completed PMTCT\"  when 843 then \"Regimen failure\"\n" +
-				"                                                                         when 5622 then \"Other\" when 160559 then \"Risk of pregnancy\" when 160561 then \"New drug available\" else \"\" end),reason_discontinued_other))), 11) as discontinuation_reason\n" +
-				"   from kenyaemr_etl.etl_drug_event where program = 'HIV' GROUP BY patient_id;";
+		String qry = "select patient_id,\n"
+		        + "        mid(min(concat(date(date_started),coalesce((case reason_discontinued when 102 then \"Drug toxicity\" when 160567 then \"New diagnosis of Tuberculosis\"  when 160569 then \"Virologic failure\"\n"
+		        + "                                                                         when 159598 then \"Non-compliance with treatment or therapy\" when 1754 then \"Medications unavailable\"\n"
+		        + "                                                                         when 1434 then \"Currently pregnant\"  when 1253 then \"Completed PMTCT\"  when 843 then \"Regimen failure\"\n"
+		        + "                                                                         when 5622 then \"Other\" when 160559 then \"Risk of pregnancy\" when 160561 then \"New drug available\" else \"\" end),reason_discontinued_other))), 11) as discontinuation_reason\n"
+		        + "   from kenyaemr_etl.etl_drug_event where program = 'HIV' GROUP BY patient_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		queryBuilder.append(qry);

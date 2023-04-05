@@ -19,16 +19,16 @@ import org.openmrs.module.reporting.evaluation.caching.Caching;
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
 public class FirstRegimenChangeReasonDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
-
+	
 	public static final long serialVersionUID = 1L;
-
+	
 	/**
 	 * Default Constructor
 	 */
 	public FirstRegimenChangeReasonDataDefinition() {
 		super();
 	}
-
+	
 	/**
 	 * Constructor to populate name only
 	 */

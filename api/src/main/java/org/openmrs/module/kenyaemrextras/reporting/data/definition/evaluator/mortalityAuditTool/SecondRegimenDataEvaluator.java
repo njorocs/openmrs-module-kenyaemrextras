@@ -36,20 +36,15 @@ public class SecondRegimenDataEvaluator implements PersonDataEvaluator {
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select f.patient_id,f.regimen from\n" +
-				"(select n.patient_id, n.date_started,n.regimen,n.date_discontinued,n.reason_discontinued,n.reason_discontinued_other from kenyaemr_etl.etl_drug_event e  join\n" +
-				"(select t.patient_id,t.date_started,t.regimen,t.date_discontinued,t.reason_discontinued,t.reason_discontinued_other\n" +
-				"from (select d.*,\n" +
-				"             (@rn := if(@v = patient_id, @rn + 1,\n" +
-				"                        if(@v := patient_id, 1, 1)\n" +
-				"                 )\n" +
-				"                 ) as rn\n" +
-				"      from kenyaemr_etl.etl_drug_event d cross join\n" +
-				"           (select @v := -1, @rn := 0) params\n" +
-				"      where d.program ='HIV'\n" +
-				"      order by d.patient_id, d.date_started asc\n" +
-				"     ) t\n" +
-				"where rn=2)n on n.patient_id= e.patient_id group by e.patient_id)f;";
+		String qry = "select f.patient_id,f.regimen from\n"
+		        + "(select n.patient_id, n.date_started,n.regimen,n.date_discontinued,n.reason_discontinued,n.reason_discontinued_other from kenyaemr_etl.etl_drug_event e  join\n"
+		        + "(select t.patient_id,t.date_started,t.regimen,t.date_discontinued,t.reason_discontinued,t.reason_discontinued_other\n"
+		        + "from (select d.*,\n" + "             (@rn := if(@v = patient_id, @rn + 1,\n"
+		        + "                        if(@v := patient_id, 1, 1)\n" + "                 )\n"
+		        + "                 ) as rn\n" + "      from kenyaemr_etl.etl_drug_event d cross join\n"
+		        + "           (select @v := -1, @rn := 0) params\n" + "      where d.program ='HIV'\n"
+		        + "      order by d.patient_id, d.date_started asc\n" + "     ) t\n"
+		        + "where rn=2)n on n.patient_id= e.patient_id group by e.patient_id)f;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		queryBuilder.append(qry);

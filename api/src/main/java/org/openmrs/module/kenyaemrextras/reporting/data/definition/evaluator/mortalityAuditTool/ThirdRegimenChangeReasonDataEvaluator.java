@@ -35,23 +35,18 @@ public class ThirdRegimenChangeReasonDataEvaluator implements PersonDataEvaluato
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select f.patient_id,f.discontinuation_reason from\n" +
-				"(select n.patient_id, n.date_started,n.regimen,n.date_discontinued,coalesce((case n.reason_discontinued when 102 then 'Drug toxicity' when 160567 then 'New diagnosis of Tuberculosis'  when 160569 then 'Virologic failure'\n" +
-				"                                                                         when 159598 then 'Non-compliance with treatment or therapy' when 1754 then 'Medications unavailable'\n" +
-				"                                                                         when 1434 then 'Currently pregnant'  when 1253 then 'Completed PMTCT'  when 843 then 'Regimen failure'\n" +
-				"                                                                         when 5622 then 'Other' when 160559 then 'Risk of pregnancy' when 160561 then 'New drug available' end),n.reason_discontinued_other) as discontinuation_reason  from kenyaemr_etl.etl_drug_event e  join\n" +
-				"(select t.patient_id,t.date_started,t.regimen,t.date_discontinued,t.reason_discontinued,t.reason_discontinued_other\n" +
-				"from (select d.*,\n" +
-				"            (@rn := if(@v = patient_id, @rn + 1,\n" +
-				"                       if(@v := patient_id, 1, 1)\n" +
-				"                )\n" +
-				"                ) as rn\n" +
-				"     from kenyaemr_etl.etl_drug_event d cross join\n" +
-				"          (select @v := -1, @rn := 0) params\n" +
-				"     where d.program ='HIV'\n" +
-				"     order by d.patient_id, d.date_started asc\n" +
-				"    ) t\n" +
-				"where rn=3)n on n.patient_id= e.patient_id group by e.patient_id)f;";
+		String qry = "select f.patient_id,f.discontinuation_reason from\n"
+		        + "(select n.patient_id, n.date_started,n.regimen,n.date_discontinued,coalesce((case n.reason_discontinued when 102 then 'Drug toxicity' when 160567 then 'New diagnosis of Tuberculosis'  when 160569 then 'Virologic failure'\n"
+		        + "                                                                         when 159598 then 'Non-compliance with treatment or therapy' when 1754 then 'Medications unavailable'\n"
+		        + "                                                                         when 1434 then 'Currently pregnant'  when 1253 then 'Completed PMTCT'  when 843 then 'Regimen failure'\n"
+		        + "                                                                         when 5622 then 'Other' when 160559 then 'Risk of pregnancy' when 160561 then 'New drug available' end),n.reason_discontinued_other) as discontinuation_reason  from kenyaemr_etl.etl_drug_event e  join\n"
+		        + "(select t.patient_id,t.date_started,t.regimen,t.date_discontinued,t.reason_discontinued,t.reason_discontinued_other\n"
+		        + "from (select d.*,\n" + "            (@rn := if(@v = patient_id, @rn + 1,\n"
+		        + "                       if(@v := patient_id, 1, 1)\n" + "                )\n"
+		        + "                ) as rn\n" + "     from kenyaemr_etl.etl_drug_event d cross join\n"
+		        + "          (select @v := -1, @rn := 0) params\n" + "     where d.program ='HIV'\n"
+		        + "     order by d.patient_id, d.date_started asc\n" + "    ) t\n"
+		        + "where rn=3)n on n.patient_id= e.patient_id group by e.patient_id)f;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		queryBuilder.append(qry);

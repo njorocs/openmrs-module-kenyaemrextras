@@ -14,27 +14,25 @@ import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.definition.configuration.ConfigurationPropertyCachingStrategy;
 import org.openmrs.module.reporting.evaluation.caching.Caching;
 
-import java.util.Date;
-
 /**
- * Date Of Fourth ART regimen switch Data Definition
+ * CrAg test done Data Definition
  */
 @Caching(strategy = ConfigurationPropertyCachingStrategy.class)
-public class FourthARTRegimenSwitchDateDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
+public class CrAgTestDoneDataDefinition extends BaseDataDefinition implements PersonDataDefinition {
 	
 	public static final long serialVersionUID = 1L;
 	
 	/**
 	 * Default Constructor
 	 */
-	public FourthARTRegimenSwitchDateDataDefinition() {
+	public CrAgTestDoneDataDefinition() {
 		super();
 	}
 	
 	/**
 	 * Constructor to populate name only
 	 */
-	public FourthARTRegimenSwitchDateDataDefinition(String name) {
+	public CrAgTestDoneDataDefinition(String name) {
 		super(name);
 	}
 	
@@ -44,6 +42,6 @@ public class FourthARTRegimenSwitchDateDataDefinition extends BaseDataDefinition
 	 * @see org.openmrs.module.reporting.data.DataDefinition#getDataType()
 	 */
 	public Class<?> getDataType() {
-		return Date.class;
+		return Double.class;
 	}
 }

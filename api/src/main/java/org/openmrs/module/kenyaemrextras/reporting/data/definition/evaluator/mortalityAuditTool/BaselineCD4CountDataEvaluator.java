@@ -10,6 +10,7 @@
 package org.openmrs.module.kenyaemrextras.reporting.data.definition.evaluator.mortalityAuditTool;
 
 import org.openmrs.annotation.Handler;
+import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.BaselineCD4CountDataDefinition;
 import org.openmrs.module.kenyaemrextras.reporting.data.definition.mortalityAuditTool.BaselineWHOStageDataDefinition;
 import org.openmrs.module.reporting.data.person.EvaluatedPersonData;
 import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
@@ -25,7 +26,7 @@ import java.util.Map;
 /**
  * Evaluates Baseline CD4 Count Data Definition
  */
-@Handler(supports = BaselineWHOStageDataDefinition.class, order = 50)
+@Handler(supports = BaselineCD4CountDataDefinition.class, order = 50)
 public class BaselineCD4CountDataEvaluator implements PersonDataEvaluator {
 	
 	@Autowired
@@ -35,13 +36,11 @@ public class BaselineCD4CountDataEvaluator implements PersonDataEvaluator {
 	        throws EvaluationException {
 		EvaluatedPersonData c = new EvaluatedPersonData(definition, context);
 		
-		String qry = "select patient_id,\n" +
-				"       mid(min(concat(date(visit_date),\n" +
-				"                      if(lab_test in(5497,730), test_result, if(lab_test = 167718 and test_result = 1254, '>200', if(lab_test = 167718 and test_result = 167717,'<=200',''))), '')),\n" +
-				"           11) as vl_result\n" +
-				"from kenyaemr_etl.etl_laboratory_extract\n" +
-				"where date(visit_date) <= date(:endDate) and lab_test in (167718,5497,730)\n" +
-				"GROUP BY patient_id;";
+		String qry = "select patient_id,\n"
+		        + "       mid(min(concat(coalesce(date(date_test_requested),date(visit_date)),\n"
+		        + "                      if(lab_test = 5497, test_result, if(lab_test = 167718 and test_result = 1254, '>200', if(lab_test = 167718 and test_result = 167717,'<=200',if(lab_test = 730,concat(test_result,'%'),'')))), '')),\n"
+		        + "           11) as baseline_cd4\n" + "from kenyaemr_etl.etl_laboratory_extract\n"
+		        + "where lab_test in (167718,5497,730)\n" + "GROUP BY patient_id;";
 		
 		SqlQueryBuilder queryBuilder = new SqlQueryBuilder();
 		queryBuilder.append(qry);

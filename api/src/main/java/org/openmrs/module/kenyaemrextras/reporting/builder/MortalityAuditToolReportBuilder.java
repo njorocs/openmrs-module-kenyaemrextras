@@ -129,22 +129,22 @@ public class MortalityAuditToolReportBuilder extends AbstractReportBuilder {
 		dsd.addColumn("Initial regimen", new ETLFirstRegimenDataDefinition(), "");
 		dsd.addColumn("Date of start regimen", new DateOfFirstARTRegimenDataDefinition(), "");
 		dsd.addColumn("Reasons for change of first regimen", new FirstRegimenChangeReasonDataDefinition(), "");
-		dsd.addColumn("2nd Regimen", new SecondRegimenDataDefinition(), "");//2,1
-		dsd.addColumn("Date of 2nd regimen switch", new SecondARTRegimenSwitchDateDataDefinition(), "");//2,1
+		dsd.addColumn("2nd Regimen", new SecondRegimenDataDefinition(), "");
+		dsd.addColumn("Date of 2nd regimen switch", new SecondARTRegimenSwitchDateDataDefinition(), "");
 		dsd.addColumn("Reasons for change of 2nd regimen", new SecondRegimenChangeReasonDataDefinition(), "");//2,1
-		dsd.addColumn("3rd Regimen", new ThirdRegimenDataDefinition(), "");//3,1
-		dsd.addColumn("Date of switch of 3rd Regimen", new ThirdARTRegimenSwitchDateDataEvaluator(), "");//3,1
-		dsd.addColumn("Reasons for change of 3rd Regimen", new ThirdRegimenChangeReasonDataEvaluator(), "");//3,1
-		dsd.addColumn("4th Regimen", new FourthRegimenDataDefinition(), "");//4,1
-		dsd.addColumn("Date of switch of 4th Regimen", new FourthARTRegimenSwitchDateDataDefinition(), "");//4,1
-		dsd.addColumn("Reasons for change of 4th Regimen", new FourthRegimenChangeReasonDataDefinition(), "");//4,1
+		dsd.addColumn("3rd Regimen", new ThirdRegimenDataDefinition(), "");
+		dsd.addColumn("Date of switch of 3rd Regimen", new ThirdARTRegimenSwitchDateDataDefinition(), "");
+		dsd.addColumn("Reasons for change of 3rd Regimen", new ThirdARTRegimenSwitchDateDataDefinition(), "");
+		dsd.addColumn("4th Regimen", new FourthRegimenDataDefinition(), "");
+		dsd.addColumn("Date of switch of 4th Regimen", new FourthARTRegimenSwitchDateDataDefinition(), "");
+		dsd.addColumn("Reasons for change of 4th Regimen", new FourthRegimenChangeReasonDataDefinition(), "");
 		dsd.addColumn("Regimen at the time of death", new ETLCurrentRegimenDataDefinition(), "");
-		//dsd.addColumn("Baseline CD4 count done", new KenyaEMRMaritalStatusDataDefinition(), "");
+		dsd.addColumn("Baseline CD4 count done", new BaselineCD4DoneDataDefinition(), "");
 		dsd.addColumn("Baseline CD4", new BaselineCD4CountDataDefinition(), "");
-		//dsd.addColumn("Date of Baseline CD4 test", new KenyaEMRMaritalStatusDataDefinition(), "");
-		//dsd.addColumn("CTX/Dapsone given", new KenyaEMRMaritalStatusDataDefinition(), "");
-		//dsd.addColumn("CRAG test done for adolescents and adults with < 200 cd4", new KenyaEMRMaritalStatusDataDefinition(), "");
-		//dsd.addColumn("CRAG test results", new KenyaEMRMaritalStatusDataDefinition(), "");
+		dsd.addColumn("Date of Baseline CD4 test", new BaselineCD4DateDataDefinition(), "");
+		dsd.addColumn("CTX/Dapsone given", new CTXDapsoneDispensedDataDefinition(), "");
+		dsd.addColumn("CRAG test done for adolescents and adults with < 200 cd4", new CrAgTestDoneDataDefinition(), "");
+		dsd.addColumn("CRAG test results", new CrAgTestResultDataDefinition(), "");
 		//dsd.addColumn("Lumbar puncture done", new KenyaEMRMaritalStatusDataDefinition(), "");
 		//dsd.addColumn("Lumbar puncture results", new KenyaEMRMaritalStatusDataDefinition(), "");
 		//dsd.addColumn("Lumbar puncture treated", new KenyaEMRMaritalStatusDataDefinition(), "");
