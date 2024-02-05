@@ -43,7 +43,7 @@ public class DQAQueries {
 		        + "             ) d on d.patient_id = fup.patient_id\n"
 		        + "    where fup.visit_date <= date(:endDate)\n"
 		        + "    group by patient_id\n"
-		        + "    having patient_type != 164931 and on_drugs != 1 and (\n"
+		        + "    having (patient_type is null or patient_type != 164931) and on_drugs != 1 and (\n"
 		        + "        (\n"
 		        + "            (timestampdiff(DAY,date(latest_tca),date(:endDate)) <= 30 and ((date(d.effective_disc_date) > date(:endDate) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "              and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"
@@ -80,7 +80,7 @@ public class DQAQueries {
 		        + "             ) d on d.patient_id = fup.patient_id\n"
 		        + "    where fup.visit_date <= date(:endDate)\n"
 		        + "    group by patient_id\n"
-		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) <= 14 and patient_type != 164931 and on_drugs != 1 and (\n"
+		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) <= 14 and (patient_type is null or patient_type != 164931) and on_drugs != 1 and (\n"
 		        + "        (\n"
 		        + "            (timestampdiff(DAY,date(latest_tca),date(:endDate)) <= 30 and ((date(d.effective_disc_date) > date(:endDate) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "              and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"
@@ -118,11 +118,12 @@ public class DQAQueries {
 		        + "             ) d on d.patient_id = fup.patient_id\n"
 		        + "    where fup.visit_date <= date(:endDate)\n"
 		        + "    group by patient_id\n"
-		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) >= 15 and patient_type != 164931 and on_drugs != 1 and (\n"
+		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) >= 15 and (patient_type is null or patient_type != 164931) and on_drugs != 1 and (\n"
 		        + "        (\n"
 		        + "            (timestampdiff(DAY,date(latest_tca),date(:endDate)) <= 30 and ((date(d.effective_disc_date) > date(:endDate) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "              and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"
 		        + "            ))) t;";
+
 		return generalPopQry;
 	}
 	
@@ -159,7 +160,7 @@ public class DQAQueries {
 		        + "             ) d on d.patient_id = fup.patient_id\n"
 		        + "    where fup.visit_date <= date(:endDate)\n"
 		        + "    group by patient_id\n"
-		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) >= 15 and patient_type != 164931 and on_drugs != 1 and (\n"
+		        + "    having timestampdiff(YEAR ,dob,date(:endDate)) >= 15 and (patient_type is null or patient_type != 164931) and on_drugs != 1 and (\n"
 		        + "        (\n"
 		        + "            (timestampdiff(DAY,date(latest_tca),date(:endDate)) <= 30 and ((date(d.effective_disc_date) > date(:endDate) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "              and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"

@@ -84,7 +84,7 @@ public class MissedVLTestCALHIVCohortDefinitionEvaluator implements CohortDefini
 		        + "        and timestampdiff(YEAR, p.DOB, date(:endDate)) <= 19\n"
 		        + "        and (t.patient_id is null or t.weight >= 3)\n"
 		        + "      group by patient_id\n"
-		        + "      having (patient_type != 164931 and on_drugs != 1)\n"
+		        + "      having ((patient_type is null or patient_type != 164931) and on_drugs != 1)\n"
 		        + "         and (\n"
 		        + "          (\n"
 		        + "                  (timestampdiff(DAY, date(latest_tca), date(:endDate)) <= 30\n"

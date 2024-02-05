@@ -85,7 +85,7 @@ public class CALHIVWithoutValidVlCohortDefinitionEvaluator implements CohortDefi
 		        + "        ) d on d.patient_id = fup.patient_id\n"
 		        + "      where fup.visit_date <= date(:endDate) and timestampdiff(YEAR,p.dob, date(:endDate)) < 15\n"
 		        + "      group by patient_id\n"
-		        + "      having (patient_type != 164931 and on_drugs != 1) and (\n"
+		        + "      having ((patient_type is null or patient_type != 164931) and on_drugs != 1) and (\n"
 		        + "        (\n"
 		        + "          ((timestampdiff(DAY,date(latest_tca),date(:endDate)) <= 30) and ((date(d.effective_disc_date) > date(:endDate) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "          and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"

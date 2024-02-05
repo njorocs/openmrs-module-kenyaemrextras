@@ -199,7 +199,7 @@ public class DQACohortLibrary {
 		        + "             ) d on d.patient_id = fup.patient_id\n"
 		        + "    where fup.visit_date <= date(curdate())\n"
 		        + "    group by patient_id\n"
-		        + "    having (patient_type != 164931 and on_drugs != 1) and (\n"
+		        + "    having ((patient_type is null or patient_type != 164931) and on_drugs != 1) and (\n"
 		        + "        (\n"
 		        + "            ((timestampdiff(DAY,date(latest_tca),date(curdate())) <= 30) and ((date(d.effective_disc_date) > date(curdate()) or date(enroll_date) > date(d.effective_disc_date)) or d.effective_disc_date is null))\n"
 		        + "              and (date(latest_vis_date) >= date(date_discontinued) or date(latest_tca) >= date(date_discontinued) or disc_patient is null)\n"

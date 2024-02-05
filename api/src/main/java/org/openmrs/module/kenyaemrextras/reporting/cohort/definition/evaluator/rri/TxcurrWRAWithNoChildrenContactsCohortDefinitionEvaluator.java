@@ -84,7 +84,7 @@ public class TxcurrWRAWithNoChildrenContactsCohortDefinitionEvaluator implements
 		        + "        and p.gender = 'F'\n"
 		        + "        and timestampdiff(YEAR, date(p.dob), date(:endDate)) between 15 and 49 -- and timestampdiff(YEAR, date(c.birth_date), date(:endDate)) < 15\n"
 		        + "      group by patient_id\n"
-		        + "      having (patient_type != 164931 and on_drugs != 1)\n"
+		        + "      having ((patient_type is null or patient_type != 164931) and on_drugs != 1)\n"
 		        + "         and contact_id is null\n"
 		        + "         and (\n"
 		        + "          (\n"

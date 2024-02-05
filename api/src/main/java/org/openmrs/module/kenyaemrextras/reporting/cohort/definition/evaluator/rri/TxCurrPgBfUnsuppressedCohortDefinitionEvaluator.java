@@ -77,7 +77,7 @@ public class TxCurrPgBfUnsuppressedCohortDefinitionEvaluator implements CohortDe
 		        + "                                       ) d on d.patient_id = fup.patient_id\n"
 		        + "                                     where fup.visit_date <= date(:endDate)\n"
 		        + "                                     group by patient_id\n"
-		        + "                                     having (patient_type != 164931 and on_drugs != 1)\n"
+		        + "                                     having ((patient_type is null or patient_type != 164931) and on_drugs != 1)\n"
 		        + "                          and (\n"
 		        + "                            (\n"
 		        + "                              ((timestampdiff(DAY, date(latest_tca), date(:endDate)) <= 30) and\n"
